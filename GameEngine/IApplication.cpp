@@ -1,18 +1,23 @@
 #include "IApplication.h"
 
+// include all your renderers
+#include "OpenGLRenderer.h"
+
+IApplication* IApplication::m_pApp = NULL;
 
 IApplication::IApplication()
 {
+	m_pApp = this;
 	m_Window = NULL;
 	m_bActive = false;
 	m_Timer.Create();
+	m_pRenderer = NULL;
 }
-
 
 IApplication::~IApplication()
 {
+	m_pApp = NULL;
 }
-
 
 bool IApplication::Create()
 {
@@ -21,6 +26,14 @@ bool IApplication::Create()
 	{
 		::SetWindowLong(m_Window, GWL_USERDATA, (LONG)this);
 
+		// create the renderer
+		m_pRenderer = new COpenGLRenderer;
+		if (!m_pRenderer->Create())
+		{
+			return false;
+		}
+
+		// call pure virtual OnCreate
 		if (OnCreate())
 		{
 			SetActive(true);
@@ -100,11 +113,12 @@ void IApplication::Run()
 			m_Timer.Stop();
 			m_Timer.Start();
 			OnUpdate(m_Timer.GetElapsedSeconds());
-			OnDraw();
+			OnDraw(m_pRenderer);
 		}
 	}
 
 	OnDestroy();
+	SAFE_DELETE(m_pRenderer);
 }
 
 void IApplication::SetActive(bool bSet)

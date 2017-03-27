@@ -10,6 +10,6 @@ public:
 	virtual bool OnCreate();
 	virtual void OnDestroy();
 	virtual void OnUpdate(float fFrameTime);
-	virtual void OnDraw();
+	virtual void OnDraw(IRenderer* pRenderer);
 };
 
