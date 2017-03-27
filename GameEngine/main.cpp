@@ -4,14 +4,14 @@
  */
 
 
-#include "IApplication.h"
+#include "TheApp.h"
 
 int APIENTRY WinMain(HINSTANCE hInst,
 	HINSTANCE hPrevInst,
 	LPSTR pCmdLine,
 	int nCmdShow)
 {
-	IApplication* pApp = new IApplication;
+	CTheApp* pApp = new CTheApp;
 	if (!pApp->Create())
 	{
 		::MessageBox(NULL, L"APP START FAILED", L"ERROR", MB_OK);

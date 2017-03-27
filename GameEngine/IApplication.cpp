@@ -3,6 +3,9 @@
 
 IApplication::IApplication()
 {
+	m_Window = NULL;
+	m_bActive = false;
+	m_Timer.Create();
 }
 
 
@@ -17,7 +20,17 @@ bool IApplication::Create()
 	if (m_Window)
 	{
 		::SetWindowLong(m_Window, GWL_USERDATA, (LONG)this);
-		return true;
+
+		if (OnCreate())
+		{
+			SetActive(true);
+			return true;
+		}
+		else
+		{
+			return false;
+		}
+
 	}
 	else
 	{
@@ -28,6 +41,30 @@ bool IApplication::Create()
 
 bool IApplication::OnEvent(UINT iMessage, WPARAM wParam, LPARAM lParam)
 {
+	switch (iMessage)
+	{
+	case WM_SETFOCUS:
+		//SetActive(true);
+		break;
+	case WM_KILLFOCUS:
+		//SetActive(false);
+		break;
+	case WM_ACTIVATEAPP:
+
+		break;
+	case WM_SIZE:
+		if (wParam == SIZE_MINIMIZED)
+		{
+			SetActive(false);
+		}
+		else if (wParam == SIZE_MAXIMIZED || wParam == SIZE_RESTORED)
+		{
+			SetActive(true);
+		}
+		break;
+	default:
+		break;
+	}
 	return false;
 }
 
@@ -44,15 +81,37 @@ void IApplication::Run()
 
 	while (msg.message != WM_QUIT)
 	{
-		gotMsg = ::GetMessage(&msg, window, 0, 0);
+		if (IsActive())
+		{
+			gotMsg = ::PeekMessage(&msg, window, 0, 0, PM_REMOVE);
+		}
+		else
+		{
+			gotMsg = ::GetMessage(&msg, window, 0, 0);
+		}
 		if (gotMsg)
 		{
 			::TranslateMessage(&msg);
 			::DispatchMessage(&msg);
 		}
+
+		if (msg.message != WM_QUIT)
+		{
+			m_Timer.Stop();
+			m_Timer.Start();
+			OnUpdate(m_Timer.GetElapsedSeconds());
+			OnDraw();
+		}
 	}
+
+	OnDestroy();
 }
 
+void IApplication::SetActive(bool bSet)
+{
+	m_bActive = bSet;
+	m_Timer.Start();
+}
 
 HWND IApplication::MakeWindow(int iWidth, int iHeight, const wchar_t* pTitle)
 {
